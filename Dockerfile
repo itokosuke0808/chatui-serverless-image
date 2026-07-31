@@ -1,6 +1,6 @@
 FROM runpod/comfyui:cuda12.8
 
-RUN apt-get update -qq && apt-get install -y -qq pciutils && \
+RUN apt-get update -qq && apt-get install -y -qq zstd pciutils unzip && \
     curl -fsSL https://ollama.com/install.sh | sh && \
     rm -rf /var/lib/apt/lists/*
 
