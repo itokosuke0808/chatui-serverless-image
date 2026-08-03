@@ -17,7 +17,12 @@ if [ -d /runpod-volume ]; then
   cd /workspace/runpod-slim
 fi
 
-# 永続ボリュームのマウント完了を待ってからOllamaをバックグラウンドで起動
+# nginxを起動（11434で待ち受け、/pingだけその場で200を返し、それ以外は
+# 11435番のOllama本体へ中継する。RunPod側のHEALTH_CHECK_PATH環境変数が
+# この環境では効かなかったため、Ollama側でなくnginx側でヘルスチェックに応答する）
+nginx
+
+# 永続ボリュームのマウント完了を待ってからOllamaをバックグラウンドで起動（11435番）
 (
   for i in $(seq 1 30); do
     if [ -d /workspace/ollama-models ] && [ -n "$(ls -A /workspace/ollama-models 2>/dev/null)" ]; then
@@ -26,7 +31,7 @@ fi
     sleep 2
   done
   for i in 1 2 3 4 5; do
-    OLLAMA_HOST=0.0.0.0 OLLAMA_ORIGINS='*' OLLAMA_MODELS=/workspace/ollama-models OLLAMA_CONTEXT_LENGTH=4096 ollama serve >> /workspace/ollama.log 2>&1
+    OLLAMA_HOST=0.0.0.0:11435 OLLAMA_ORIGINS='*' OLLAMA_MODELS=/workspace/ollama-models OLLAMA_CONTEXT_LENGTH=4096 ollama serve >> /workspace/ollama.log 2>&1
     echo "ollama serve exited (attempt $i), retrying in 3s..." >> /workspace/ollama.log
     sleep 3
   done
