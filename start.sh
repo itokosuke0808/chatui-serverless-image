@@ -8,10 +8,13 @@ set -e  # Exit the script if any statement returns a non-true return value
 # /workspace 自体を /runpod-volume への別名にしてしまい、既存ロジックをそのまま
 # 永続ボリュームに向けさせる。
 if [ -d /runpod-volume ]; then
+  cd /
   if [ -d /workspace ] && [ ! -L /workspace ]; then
     rm -rf /workspace
   fi
   ln -sfn /runpod-volume /workspace
+  mkdir -p /workspace/runpod-slim
+  cd /workspace/runpod-slim
 fi
 
 # 永続ボリュームのマウント完了を待ってからOllamaをバックグラウンドで起動
