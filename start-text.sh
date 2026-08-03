@@ -4,6 +4,7 @@ set -e  # Exit the script if any statement returns a non-true return value
 DEBUG_LOG_FALLBACK=/tmp/debug-timing.log
 log_ts() {
   local msg="[$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)] $1"
+  echo "$msg"
   echo "$msg" >> "$DEBUG_LOG_FALLBACK"
   echo "$msg" >> /workspace-debug-timing.log 2>/dev/null || true
 }
@@ -43,6 +44,17 @@ MODEL_SIZE=$(du -sh /workspace/ollama-models 2>/dev/null | cut -f1)
 log_ts "ollama-models dir size: ${MODEL_SIZE:-unknown}"
 
 log_ts "invoking ollama serve"
+
+# バックグラウンドでOllama本体(11435)が実際に応答し始めた瞬間をログに残す
+(
+  for i in $(seq 1 150); do
+    if curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:11435/api/version 2>/dev/null | grep -q 200; then
+      log_ts "ollama backend (11435) responding to /api/version after $i checks"
+      break
+    fi
+    sleep 1
+  done
+) &
 
 # テキスト専用ワーカーなので、Ollamaをそのままフォアグラウンドで実行し続ける
 # （ComfyUIは起動しない。落ちたら数秒待って再起動する）
