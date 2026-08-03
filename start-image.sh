@@ -17,25 +17,11 @@ if [ -d /runpod-volume ]; then
   cd /workspace/runpod-slim
 fi
 
-# nginxを起動（11434で待ち受け、/pingだけその場で200を返し、それ以外は
-# 11435番のOllama本体へ中継する。RunPod側のHEALTH_CHECK_PATH環境変数が
-# この環境では効かなかったため、Ollama側でなくnginx側でヘルスチェックに応答する）
+# nginxを起動（8188で待ち受け、/pingだけその場で200を返し、それ以外は
+# 8189番のComfyUI本体へ中継する。RunPod側のHEALTH_CHECK_PATH環境変数が
+# この環境では効かなかったため、ComfyUI側でなくnginx側でヘルスチェックに応答する）
+# 画像専用ワーカーのため、Ollamaはここでは起動しない。
 nginx
-
-# 永続ボリュームのマウント完了を待ってからOllamaをバックグラウンドで起動（11435番）
-(
-  for i in $(seq 1 30); do
-    if [ -d /workspace/ollama-models ] && [ -n "$(ls -A /workspace/ollama-models 2>/dev/null)" ]; then
-      break
-    fi
-    sleep 2
-  done
-  for i in 1 2 3 4 5; do
-    OLLAMA_HOST=0.0.0.0:11435 OLLAMA_ORIGINS='*' OLLAMA_MODELS=/workspace/ollama-models OLLAMA_CONTEXT_LENGTH=4096 ollama serve >> /workspace/ollama.log 2>&1
-    echo "ollama serve exited (attempt $i), retrying in 3s..." >> /workspace/ollama.log
-    sleep 3
-  done
-) &
 # --- 追加分ここまで ---
 
 COMFYUI_DIR="/workspace/runpod-slim/ComfyUI"
