@@ -1,7 +1,6 @@
-FROM runpod/comfyui:cuda12.8
+FROM ollama/ollama:latest
 
-RUN apt-get update -qq && apt-get install -y -qq zstd pciutils unzip nginx && \
-    curl -fsSL https://ollama.com/install.sh | sh && \
+RUN apt-get update -qq && apt-get install -y -qq nginx && \
     rm -rf /var/lib/apt/lists/*
 
 COPY nginx-text.conf /etc/nginx/sites-enabled/ollama-proxy.conf
@@ -9,3 +8,5 @@ RUN rm -f /etc/nginx/sites-enabled/default
 
 COPY start-text.sh /start.sh
 RUN chmod +x /start.sh
+
+ENTRYPOINT ["/start.sh"]
