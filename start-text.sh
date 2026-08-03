@@ -45,11 +45,12 @@ log_ts "ollama-models dir size: ${MODEL_SIZE:-unknown}"
 
 log_ts "invoking ollama serve"
 
-# バックグラウンドでOllama本体(11435)が実際に応答し始めた瞬間をログに残す
+# バックグラウンドでOllama本体(11435)が実際にポートを開けた瞬間をログに残す
+# (curlがベースイメージに無い可能性があるため、bash組み込みの/dev/tcpで確認する)
 (
   for i in $(seq 1 150); do
-    if curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:11435/api/version 2>/dev/null | grep -q 200; then
-      log_ts "ollama backend (11435) responding to /api/version after $i checks"
+    if timeout 1 bash -c "echo > /dev/tcp/127.0.0.1/11435" 2>/dev/null; then
+      log_ts "ollama backend (11435) TCP port open after $i checks"
       break
     fi
     sleep 1
