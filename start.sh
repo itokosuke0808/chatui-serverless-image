@@ -1,7 +1,20 @@
 #!/bin/bash
 set -e  # Exit the script if any statement returns a non-true return value
 
-# --- 追加分: Ollamaをバックグラウンドで起動（永続ボリュームのマウント完了を待ってから） ---
+# --- 追加分: /workspace を永続ボリュームの実マウント先へのシンボリックリンクにする ---
+# 重要: ServerlessワーカーではネットワークボリュームはPodと違い /runpod-volume に
+# マウントされる（Podでは/workspace）。この後に続くComfyUI側のロジックは全て
+# /workspace を前提に書かれている（Pod用のまま）ため、パスを個別に書き換える代わりに
+# /workspace 自体を /runpod-volume への別名にしてしまい、既存ロジックをそのまま
+# 永続ボリュームに向けさせる。
+if [ -d /runpod-volume ]; then
+  if [ -d /workspace ] && [ ! -L /workspace ]; then
+    rm -rf /workspace
+  fi
+  ln -sfn /runpod-volume /workspace
+fi
+
+# 永続ボリュームのマウント完了を待ってからOllamaをバックグラウンドで起動
 (
   for i in $(seq 1 30); do
     if [ -d /workspace/ollama-models ] && [ -n "$(ls -A /workspace/ollama-models 2>/dev/null)" ]; then
