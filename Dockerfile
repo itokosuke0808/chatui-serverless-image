@@ -9,7 +9,5 @@ RUN pip3 install --no-cache-dir \
     opencv-python-headless scipy numpy dill matplotlib \
     "ultralytics>=8.3.162"
 
-COPY start-with-ollama.sh /start-with-ollama.sh
-RUN chmod +x /start-with-ollama.sh
-
-ENTRYPOINT ["/start-with-ollama.sh"]
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
