@@ -232,6 +232,18 @@ fi
 # Warm up pip so ComfyUI-Manager's 5s timeout check doesn't fail on cold start
 python -m pip --version > /dev/null 2>&1
 
+# ComfyUI-Managerの「起動のたびに166件の外部データをフェッチする」処理（数十秒〜
+# 数分かかる）をoffline化して止める。設定ファイルが無ければ作成、あれば書き換える。
+MANAGER_CONFIG_DIR="$COMFYUI_DIR/user/__manager"
+MANAGER_CONFIG="$MANAGER_CONFIG_DIR/config.ini"
+mkdir -p "$MANAGER_CONFIG_DIR"
+if [ -f "$MANAGER_CONFIG" ] && grep -q '^network_mode' "$MANAGER_CONFIG"; then
+    sed -i 's/^network_mode.*/network_mode = offline/' "$MANAGER_CONFIG"
+else
+    printf '[default]\nnetwork_mode = offline\n' >> "$MANAGER_CONFIG"
+fi
+echo "ComfyUI-Manager network_mode set to offline (skip ComfyRegistry fetch)"
+
 # Start ComfyUI — keep container alive if it crashes so SSH/Jupyter remain accessible
 cd $COMFYUI_DIR
 FIXED_ARGS="--listen 0.0.0.0 --port 8189 --enable-cors-header"
