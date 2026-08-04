@@ -1,0 +1,6 @@
+FROM vllm/vllm-openai:v0.19.1
+
+COPY start-vllm.sh /start.sh
+RUN chmod +x /start.sh
+
+ENTRYPOINT ["/start.sh"]
