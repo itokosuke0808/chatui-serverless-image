@@ -1,4 +1,4 @@
-FROM vllm/vllm-openai:v0.19.1
+FROM vllm/vllm-openai:v0.8.5
 
 COPY start-vllm.sh /start.sh
 RUN chmod +x /start.sh
